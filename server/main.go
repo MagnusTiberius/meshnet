@@ -159,8 +159,6 @@ func handleConnectionAck(c net.Conn) {
 	}
 
 	c.Write(buf)
-	//c.Write([]byte("\n"))
-
 }
 
 func handleConn(c net.Conn) {
