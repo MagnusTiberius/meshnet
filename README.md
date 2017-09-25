@@ -1,13 +1,18 @@
 # meshnet
 Secure Mesh Topology
 
+Meshnet is an implementation of MQTT running on TCP. It supports TLS using SSL certificates.
+
 Protocol:
-1. MQTT
-   http://www.hivemq.com/mqtt/
+```
+  MQTT
+   http://mqtt.org/documentation
+```
 
 Status:
+```
    9/25/2017 - Implemented connect and connect-ack.
-
+```
 
 Dependencies:
 
