@@ -23,7 +23,9 @@ func main() {
 
 	state := conn.ConnectionState()
 	for _, v := range state.PeerCertificates {
+		fmt.Printf("PublicKey:\n")
 		fmt.Println(x509.MarshalPKIXPublicKey(v.PublicKey))
+		fmt.Printf("Subject:\n")
 		fmt.Println(v.Subject)
 	}
 	log.Println("client: handshake: ", state.HandshakeComplete)
@@ -38,6 +40,9 @@ func main() {
 
 	reply := make([]byte, 256)
 	n, err = conn.Read(reply)
+	if err != nil {
+		log.Fatalf("client: write: %s", err)
+	}
 	log.Printf("client: read %q (%d bytes)", string(reply[:n]), n)
 	log.Print("client: exiting")
 }

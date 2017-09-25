@@ -6,6 +6,8 @@ import (
 	"crypto/x509"
 	"log"
 	"net"
+
+	"github.com/MagnusTiberius/meshnet/api/lex"
 )
 
 func main() {
@@ -53,6 +55,10 @@ func handleClient(conn net.Conn) {
 			}
 			break
 		}
+
+		l := lex.PrvLexer{}
+		l.accept("1234567890")
+
 		log.Printf("server: conn: echo %q\n", string(buf[:n]))
 		n, err = conn.Write(buf[:n])
 		log.Printf("server: conn: wrote %d bytes", n)
