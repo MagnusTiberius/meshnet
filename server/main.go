@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/MagnusTiberius/meshnet/api/lex"
+	"github.com/gomqtt/packet"
 )
 
 var (
@@ -35,7 +36,7 @@ func main() {
 	}
 
 	if tlsOk == "tls" {
-		tlsServer()
+		setupListenerTLS("127.0.0.1", "8000")
 	} else {
 		setupListener("127.0.0.1", "8049")
 	}
@@ -112,6 +113,56 @@ func handleEvent(e Event) {
 	//relayEvent(e)
 }
 
+func handleIncomin(buf []byte, conn net.Conn) {
+	// Detect packet.
+	l, mt := packet.DetectPacket(buf)
+
+	// Check length
+	if l == 0 {
+		fmt.Printf("buffer not complete yet")
+		return // buffer not complete yet
+	}
+
+	// Create packet.
+	pkt2, err := mt.New()
+	if err != nil {
+		panic(err) // packet type is invalid
+	}
+
+	// Decode packet.
+	_, err = pkt2.Decode(buf)
+	if err != nil {
+		panic(err) // there was an error while decoding
+	}
+
+	switch pkt2.Type() {
+	case packet.CONNECT:
+		c := pkt2.(*packet.ConnectPacket)
+		fmt.Println(c.Username)
+		fmt.Println(c.Password)
+		handleConnectionAck(conn)
+	}
+
+}
+
+func handleConnectionAck(c net.Conn) {
+	ack := packet.NewConnackPacket()
+	ack.ReturnCode = packet.ConnectionAccepted
+	ack.SessionPresent = true
+
+	// Allocate buffer.
+	buf := make([]byte, ack.Len())
+
+	// Encode the packet.
+	if _, err := ack.Encode(buf); err != nil {
+		panic(err) // error while encoding
+	}
+
+	c.Write(buf)
+	//c.Write([]byte("\n"))
+
+}
+
 func handleConn(c net.Conn) {
 	b := bufio.NewReader(c)
 	for {
@@ -119,20 +170,23 @@ func handleConn(c net.Conn) {
 		if err != nil {
 			break
 		}
-		fmt.Printf("%v:%s", c.RemoteAddr(), string(msg))
-		c.Write(msg)
+
+		handleIncomin(msg, c)
+
+		//fmt.Printf("%v:%s", c.RemoteAddr(), string(msg))
+		//c.Write(msg)
 		handleEvent(Event{Name: "CLIENT_MSG", Client: c, Msg: msg})
 	}
 }
 
-func tlsServer() {
+func setupListenerTLS(ip string, sport string) {
 	cert, err := tls.LoadX509KeyPair("secure/certs/server.pem", "secure/certs/server.key")
 	if err != nil {
 		log.Fatalf("server: loadkeys: %s", err)
 	}
 	config := tls.Config{Certificates: []tls.Certificate{cert}}
 	config.Rand = rand.Reader
-	service := "0.0.0.0:8000"
+	service := fmt.Sprintf("%s:%s", ip, sport)
 	listener, err := tls.Listen("tcp", service, &config)
 	if err != nil {
 		log.Fatalf("server: listen: %s", err)
@@ -142,6 +196,7 @@ func tlsServer() {
 		conn, err := listener.Accept()
 		if err != nil {
 			log.Printf("server: accept: %s", err)
+			fmt.Printf("%v\n", err)
 			break
 		}
 		defer conn.Close()
