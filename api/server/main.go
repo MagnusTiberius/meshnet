@@ -7,13 +7,12 @@ import (
 	"fmt"
 	"log"
 	"net"
-
-	"github.com/gomqtt/packet"
 )
 
 //Broker todo ...
 type Broker struct {
-	Listener net.Listener
+	Listener       net.Listener
+	HandleIncoming func(buf []byte, conn net.Conn)
 }
 
 //NewBroker todo ...
@@ -40,7 +39,7 @@ func (b *Broker) Accept() {
 				log.Print(x509.MarshalPKIXPublicKey(v.PublicKey))
 			}
 		}
-		go b.HandleConn(conn)
+		b.HandleConn(conn)
 	}
 }
 
@@ -53,55 +52,6 @@ func (b *Broker) HandleConn(conn net.Conn) {
 			break
 		}
 
-		b.HandleIncoming(msg, conn)
+		go b.HandleIncoming(msg, conn)
 	}
-}
-
-//HandleIncoming todo ...
-func (b *Broker) HandleIncoming(buf []byte, conn net.Conn) {
-	// Detect packet.
-	l, mt := packet.DetectPacket(buf)
-
-	// Check length
-	if l == 0 {
-		fmt.Printf("buffer not complete yet")
-		return // buffer not complete yet
-	}
-
-	// Create packet.
-	pkt, err := mt.New()
-	if err != nil {
-		panic(err) // packet type is invalid
-	}
-
-	// Decode packet.
-	_, err = pkt.Decode(buf)
-	if err != nil {
-		panic(err) // there was an error while decoding
-	}
-
-	switch pkt.Type() {
-	case packet.CONNECT:
-		c := pkt.(*packet.ConnectPacket)
-		fmt.Println(c.Username)
-		fmt.Println(c.Password)
-		replyConnectionAck(conn)
-	}
-
-}
-
-func replyConnectionAck(c net.Conn) {
-	ack := packet.NewConnackPacket()
-	ack.ReturnCode = packet.ConnectionAccepted
-	ack.SessionPresent = true
-
-	// Allocate buffer.
-	buf := make([]byte, ack.Len())
-
-	// Encode the packet.
-	if _, err := ack.Encode(buf); err != nil {
-		panic(err) // error while encoding
-	}
-
-	c.Write(buf)
 }

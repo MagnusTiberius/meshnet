@@ -2,58 +2,42 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net"
 
 	"github.com/MagnusTiberius/meshnet/api/client"
-	"github.com/MagnusTiberius/meshnet/api/command"
 	"github.com/gomqtt/packet"
 )
 
 func main() {
 
-	cfg := client.Config{
+	cfg := client.ConfigTLS{
 		Addr:      "127.0.0.1:8000",
 		ClientPEM: "secure/certs/client.pem",
 		ClientKey: "secure/certs/client.key",
 	}
-	client := client.NewClientTLS(&cfg)
 
-	if client == nil {
+	c := client.NewClient()
+	tls := c.NewTLS(&cfg)
+
+	if tls == nil {
 		return
 	}
 
 	// Connect
-	packet := packet.NewConnectPacket()
-	packet.Username = "gomqtt"
-	packet.Password = "amazing!"
+	p := packet.NewConnectPacket()
+	p.Username = "gomqtt"
+	p.Password = "amazing!"
 
-	command.Connect(packet, client.Conn)
+	c.Connect(p, tls)
 
-	go handleReceive(client.Conn)
+	c.HandleIncoming = handleIncoming
 
-	handleReceive(client.Conn)
-
-	//log.Print("client: exiting")
-}
-
-func initSenders(conn net.Conn) {
+	fmt.Println("Calling HandleReceive")
+	c.HandleReceive(tls)
 
 }
 
-func handleReceive(conn net.Conn) {
-	reply := make([]byte, 4096)
-	for {
-		n, err := conn.Read(reply)
-		if err != nil {
-			log.Fatalf("client: write: %s", err)
-		}
-		log.Printf("client: read %q (%d bytes)", string(reply[:n]), n)
-		handleIncomin(reply, conn)
-	}
-}
-
-func handleIncomin(buf []byte, conn net.Conn) {
+func handleIncoming(buf []byte, conn net.Conn) {
 	// Detect packet.
 	l, mt := packet.DetectPacket(buf)
 

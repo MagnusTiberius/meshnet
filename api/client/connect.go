@@ -9,19 +9,14 @@ import (
 )
 
 //Config todo ...
-type Config struct {
+type ConfigTLS struct {
 	Addr      string
 	ClientPEM string //"secure/certs/client.pem"
 	ClientKey string //"secure/certs/client.key"
 }
 
-//Client todo ...
-type Client struct {
-	Conn net.Conn
-}
-
-//NewClientTLS todo...
-func NewClientTLS(cfg *Config) *Client {
+//NewTLS todo...
+func (c *Config) NewTLS(cfg *ConfigTLS) net.Conn {
 	cert, err := tls.LoadX509KeyPair(cfg.ClientPEM, cfg.ClientKey)
 	if err != nil {
 		log.Fatalf("server: loadkeys: %s", err)
@@ -44,5 +39,5 @@ func NewClientTLS(cfg *Config) *Client {
 	}
 	log.Println("client: handshake: ", state.HandshakeComplete)
 	log.Println("client: mutual: ", state.NegotiatedProtocolIsMutual)
-	return &Client{Conn: conn}
+	return conn
 }
