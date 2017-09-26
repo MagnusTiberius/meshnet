@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -12,6 +11,7 @@ import (
 	"strconv"
 
 	"github.com/MagnusTiberius/meshnet/api/lex"
+	"github.com/MagnusTiberius/meshnet/api/server"
 	"github.com/gomqtt/packet"
 )
 
@@ -81,38 +81,6 @@ func handleConns(l net.Listener) chan net.Conn {
 	return ch
 }
 
-func handleEvent(e Event) {
-	//fmt.Println(e.Name)
-	switch e.Name {
-	case "CONNECT_EVENT":
-		for _, c := range connPool {
-			conn := *c
-			addr := fmt.Sprintf("%v", e.Client.RemoteAddr())
-			if fmt.Sprintf("%v", conn.RemoteAddr()) != addr {
-				msgConnect := []byte(fmt.Sprintf("%s has connected\n", addr))
-				conn.Write(msgConnect)
-			}
-		}
-	case "CLIENT_MSG":
-		for _, c := range connPool {
-			addr := fmt.Sprintf("%v", e.Client.RemoteAddr())
-			conn := *c
-			if fmt.Sprintf("%v", conn.RemoteAddr()) != addr {
-				msg := fmt.Sprintf("ECHO>>%v:%s", e.Client.RemoteAddr(), string(e.Msg))
-				conn.Write([]byte(msg))
-			}
-		}
-	case "RELAY_MSG":
-		for _, c := range connPool {
-			client := *c
-			msg := fmt.Sprintf("RELAY>>%v:%s\n", e.Client.RemoteAddr(), string(e.Msg))
-			client.Write([]byte(msg))
-		}
-	default:
-	}
-	//relayEvent(e)
-}
-
 func handleIncomin(buf []byte, conn net.Conn) {
 	// Detect packet.
 	l, mt := packet.DetectPacket(buf)
@@ -178,18 +146,13 @@ func handleConn(c net.Conn) {
 }
 
 func setupListenerTLS(ip string, sport string) {
-	cert, err := tls.LoadX509KeyPair("secure/certs/server.pem", "secure/certs/server.key")
-	if err != nil {
-		log.Fatalf("server: loadkeys: %s", err)
+	cfg := server.Config{
+		Addr: fmt.Sprintf("%s:%s", ip, sport),
+		PEM:  "secure/certs/server.pem",
+		Key:  "secure/certs/server.key",
 	}
-	config := tls.Config{Certificates: []tls.Certificate{cert}}
-	config.Rand = rand.Reader
-	service := fmt.Sprintf("%s:%s", ip, sport)
-	listener, err := tls.Listen("tcp", service, &config)
-	if err != nil {
-		log.Fatalf("server: listen: %s", err)
-	}
-	log.Print("server: listening")
+	listener := server.ListenerTLS(&cfg)
+
 	for {
 		conn, err := listener.Accept()
 		if err != nil {

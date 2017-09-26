@@ -1,75 +1,56 @@
 package main
 
 import (
-	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"log"
 	"net"
 
+	"github.com/MagnusTiberius/meshnet/api"
+	"github.com/MagnusTiberius/meshnet/api/client"
 	"github.com/gomqtt/packet"
 )
 
 func main() {
-	var n int
-	cert, err := tls.LoadX509KeyPair("secure/certs/client.pem", "secure/certs/client.key")
-	if err != nil {
-		log.Fatalf("server: loadkeys: %s", err)
+
+	cfg := client.Config{
+		Addr:      "127.0.0.1:8000",
+		ClientPEM: "secure/certs/client.pem",
+		ClientKey: "secure/certs/client.key",
 	}
-	config := tls.Config{Certificates: []tls.Certificate{cert}, InsecureSkipVerify: true}
-	conn, err := tls.Dial("tcp", "127.0.0.1:8000", &config)
-	if err != nil {
-		log.Fatalf("client: dial: %s", err)
-	}
-	defer conn.Close()
-	log.Println("client: connected to: ", conn.RemoteAddr())
+	client := client.NewClientTLS(&cfg)
 
-	state := conn.ConnectionState()
-	for _, v := range state.PeerCertificates {
-		fmt.Printf("PublicKey:\n")
-		fmt.Println(x509.MarshalPKIXPublicKey(v.PublicKey))
-		fmt.Printf("Subject:\n")
-		fmt.Println(v.Subject)
-	}
-	log.Println("client: handshake: ", state.HandshakeComplete)
-	log.Println("client: mutual: ", state.NegotiatedProtocolIsMutual)
-
-	/*
-		message := "Hello\n"
-		n, err := io.WriteString(conn, message)
-		if err != nil {
-			log.Fatalf("client: write: %s", err)
-		}
-		log.Printf("client: wrote %q (%d bytes)", message, n)
-	*/
-
-	// Create new packet.
-	pkt1 := packet.NewConnectPacket()
-	pkt1.Username = "gomqtt"
-	pkt1.Password = "amazing!"
-
-	// Allocate buffer.
-	buf := make([]byte, pkt1.Len())
-
-	// Encode the packet.
-	if _, err = pkt1.Encode(buf); err != nil {
-		panic(err) // error while encoding
+	if client == nil {
+		return
 	}
 
-	buf2 := fmt.Sprintf("%v\n", string(buf))
-	conn.Write([]byte(buf2))
+	// Connect
+	packet := packet.NewConnectPacket()
+	packet.Username = "gomqtt"
+	packet.Password = "amazing!"
 
+	command.Connect(packet, client.Conn)
+
+	go handleReceive(client.Conn)
+
+	handleReceive(client.Conn)
+
+	//log.Print("client: exiting")
+}
+
+func initSenders(conn net.Conn) {
+
+}
+
+func handleReceive(conn net.Conn) {
 	reply := make([]byte, 4096)
 	for {
-		n, err = conn.Read(reply)
+		n, err := conn.Read(reply)
 		if err != nil {
 			log.Fatalf("client: write: %s", err)
 		}
 		log.Printf("client: read %q (%d bytes)", string(reply[:n]), n)
 		handleIncomin(reply, conn)
 	}
-
-	//log.Print("client: exiting")
 }
 
 func handleIncomin(buf []byte, conn net.Conn) {
