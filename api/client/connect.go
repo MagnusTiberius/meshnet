@@ -8,7 +8,7 @@ import (
 	"net"
 )
 
-//Config todo ...
+//ConfigTLS todo ...
 type ConfigTLS struct {
 	Addr      string
 	ClientPEM string //"secure/certs/client.pem"

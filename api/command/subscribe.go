@@ -28,4 +28,5 @@ func Subscribe(packet *packet.SubscribePacket, conn net.Conn) {
 
 	conn.Write(buf)
 	conn.Write([]byte("\n"))
+	conn.Write([]byte("\n"))
 }

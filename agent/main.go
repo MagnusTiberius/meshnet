@@ -5,7 +5,12 @@ import (
 	"net"
 
 	"github.com/MagnusTiberius/meshnet/api/client"
+	"github.com/MagnusTiberius/meshnet/api/command"
 	"github.com/gomqtt/packet"
+)
+
+var (
+	uid uint16 = 1
 )
 
 func main() {
@@ -23,17 +28,48 @@ func main() {
 		return
 	}
 
+	c.HandleIncoming = handleIncoming
+	fmt.Println("Calling HandleReceive")
+	go c.HandleReceive(tls)
+
 	// Connect
 	p := packet.NewConnectPacket()
 	p.Username = "gomqtt"
 	p.Password = "amazing!"
 
+	fmt.Println("Calling Connect")
 	c.Connect(p, tls)
 
-	c.HandleIncoming = handleIncoming
+	msg := command.NewMessage()
+	msg.Topic = "welcome/all"
+	msg.Payload = []byte("Hey this is a hello message.\n")
 
-	fmt.Println("Calling HandleReceive")
-	c.HandleReceive(tls)
+	fmt.Println("Calling Publish")
+	command.Publish(msg, tls)
+
+	msg.Payload = []byte("Another comment going in.\n")
+	fmt.Println("Calling Publish")
+	command.Publish(msg, tls)
+
+	subp := command.NewSubscribePacket()
+	subp.PacketID = uid
+	uid = uid + 1
+	sub := command.NewSubscription()
+	sub.Topic = "welcome/all"
+	subp.Subscriptions = append(subp.Subscriptions, sub)
+	sub2 := command.NewSubscription()
+	sub2.Topic = "goodbye/all"
+	subp.Subscriptions = append(subp.Subscriptions, sub2)
+	fmt.Printf("Calling Subscribe: %v \n", subp)
+	command.Subscribe(subp, tls)
+
+	msg.Payload = []byte("Another comment going in.\n")
+	fmt.Println("Calling Publish")
+	command.Publish(msg, tls)
+
+	for {
+
+	}
 
 }
 

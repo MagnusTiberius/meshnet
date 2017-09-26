@@ -67,15 +67,26 @@ func handleIncoming(buf []byte, conn net.Conn) {
 
 	switch pkt.Type() {
 	case packet.CONNECT:
+		fmt.Printf("\nCONNECT:\n")
 		c := pkt.(*packet.ConnectPacket)
-		fmt.Println(c.Username)
-		fmt.Println(c.Password)
+		fmt.Println("Username:" + c.Username)
+		fmt.Println("Password:" + c.Password)
 		replyConnectionAck(conn)
+	case packet.PUBLISH:
+		fmt.Printf("\nPUBLISH:\n")
+		p := pkt.(*packet.PublishPacket)
+		fmt.Println("Topic:" + p.Message.Topic)
+		fmt.Println("Payload:" + string(p.Message.Payload))
+	case packet.SUBSCRIBE:
+		fmt.Printf("\nSUBSCRIBE:\n")
+		p := pkt.(*packet.SubscribePacket)
+		fmt.Printf("Subscriptions: %v \n", p.Subscriptions)
 	}
 
 }
 
 func replyConnectionAck(c net.Conn) {
+	fmt.Println("replyConnectionAck")
 	ack := packet.NewConnackPacket()
 	ack.ReturnCode = packet.ConnectionAccepted
 	ack.SessionPresent = true
@@ -89,4 +100,6 @@ func replyConnectionAck(c net.Conn) {
 	}
 
 	c.Write(buf)
+	c.Write([]byte("\n"))
+	fmt.Printf("replyConnectionAck...done: %v \n", buf)
 }
