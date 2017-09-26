@@ -5,8 +5,8 @@ import (
 	"log"
 	"net"
 
-	"github.com/MagnusTiberius/meshnet/api"
 	"github.com/MagnusTiberius/meshnet/api/client"
+	"github.com/MagnusTiberius/meshnet/api/command"
 	"github.com/gomqtt/packet"
 )
 

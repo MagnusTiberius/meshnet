@@ -3,6 +3,7 @@ package server
 import (
 	"crypto/rand"
 	"crypto/tls"
+	"fmt"
 	"log"
 	"net"
 )
@@ -28,5 +29,6 @@ func ListenerTLS(cfg *Config) net.Listener {
 		log.Fatalf("server: listen: %s", err)
 		return nil
 	}
+	fmt.Printf("Server listening...\n")
 	return listener
 }
