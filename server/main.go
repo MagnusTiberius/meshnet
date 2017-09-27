@@ -7,12 +7,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/MagnusTiberius/meshnet/api/command"
 	"github.com/MagnusTiberius/meshnet/api/server"
 	"github.com/gomqtt/packet"
 )
 
 var (
-	connPool  map[string]*net.Conn
+	connPool  map[string]net.Conn
 	port      string
 	ip        string
 	relayConn net.Conn
@@ -60,9 +61,6 @@ func handleConn(c net.Conn, broker *server.Broker) {
 		if err != nil {
 			break
 		}
-		//fmt.Printf("%v:%s", c.RemoteAddr(), string(msg))
-		//c.Write(msg)
-		//handleEvent(Event{Name: "CLIENT_MSG", Client: c, Msg: msg})
 		handleIncoming(msg, c, broker)
 	}
 }
@@ -71,15 +69,33 @@ func startServer(b *server.Broker) {
 	for {
 		time.Sleep(1000 * time.Millisecond)
 		fmt.Printf(".")
+		for kcn, kv := range connPool {
+			_, err := replyConnectionAck(kv)
+			if err != nil {
+				fmt.Printf("Conn Closed: %v \n", kcn)
+				for _, v := range b.Bundle.TopicList {
+					fmt.Printf("Removing element %v\n", kcn)
+					delete(v.ConnList, kcn)
+				}
+			}
+		}
 		for key, v := range b.Bundle.TopicList {
 			fmt.Printf("key: %v \n", key)
 			for _, d := range v.ConnList {
 				addr := d.RemoteAddr()
 				fmt.Printf("\taddr: %v \n", addr)
-				_, err := d.Read([]byte{})
-				if err != nil {
-					delete(v.ConnList, fmt.Sprintf("%v", addr))
+				h := v.LastSent
+				g := len(v.Messages)
+				for k, m := range v.Messages {
+					if int64(k) > h {
+						fmt.Printf("\t\tmsg: %v \n", string(m.Payload))
+						_, err := command.Publish(m, d)
+						if err != nil {
+							fmt.Printf("\t\t\t Invalid Address\n")
+						}
+					}
 				}
+				v.LastSent = int64(g)
 			}
 		}
 	}
@@ -115,6 +131,11 @@ func handleIncoming(buf []byte, conn net.Conn, brk *server.Broker) {
 		fmt.Println("Username:" + c.Username)
 		fmt.Println("Password:" + c.Password)
 		replyConnectionAck(conn)
+		addr := fmt.Sprintf("%v", conn.RemoteAddr())
+		if connPool == nil {
+			connPool = make(map[string]net.Conn)
+		}
+		connPool[addr] = conn
 	case packet.PUBLISH:
 		fmt.Printf("\nPUBLISH:\n")
 		p := pkt.(*packet.PublishPacket)
@@ -155,7 +176,7 @@ func replySubscriptionAck(c net.Conn, uid uint16) {
 
 }
 
-func replyConnectionAck(c net.Conn) {
+func replyConnectionAck(c net.Conn) (n int, err error) {
 	fmt.Println("replyConnectionAck")
 	ack := packet.NewConnackPacket()
 	ack.ReturnCode = packet.ConnectionAccepted
@@ -165,11 +186,12 @@ func replyConnectionAck(c net.Conn) {
 	buf := make([]byte, ack.Len())
 
 	// Encode the packet.
-	if _, err := ack.Encode(buf); err != nil {
+	if _, err = ack.Encode(buf); err != nil {
 		panic(err) // error while encoding
 	}
 
-	c.Write(buf)
+	n, err = c.Write(buf)
 	c.Write([]byte("\n"))
 	fmt.Printf("replyConnectionAck...done: %v \n", buf)
+	return n, err
 }

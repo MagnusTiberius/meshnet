@@ -7,7 +7,7 @@ func handleEvent(e Event) {
 	switch e.Name {
 	case "CONNECT_EVENT":
 		for _, c := range connPool {
-			conn := *c
+			conn := c
 			addr := fmt.Sprintf("%v", e.Client.RemoteAddr())
 			if fmt.Sprintf("%v", conn.RemoteAddr()) != addr {
 			}
@@ -17,7 +17,7 @@ func handleEvent(e Event) {
 	case "CLIENT_MSG":
 		for _, c := range connPool {
 			addr := fmt.Sprintf("%v", e.Client.RemoteAddr())
-			conn := *c
+			conn := c
 			if fmt.Sprintf("%v", conn.RemoteAddr()) != addr {
 				msg := fmt.Sprintf("ECHO>>%v:%s", e.Client.RemoteAddr(), string(e.Msg))
 				conn.Write([]byte(msg))
@@ -25,7 +25,7 @@ func handleEvent(e Event) {
 		}
 	case "RELAY_MSG":
 		for _, c := range connPool {
-			client := *c
+			client := c
 			msg := fmt.Sprintf("RELAY>>%v:%s\n", e.Client.RemoteAddr(), string(e.Msg))
 			client.Write([]byte(msg))
 		}

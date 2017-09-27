@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	"github.com/MagnusTiberius/meshnet/api/client"
 	"github.com/MagnusTiberius/meshnet/api/command"
@@ -62,7 +63,7 @@ func main() {
 	fmt.Printf("Calling Subscribe: %v \n", subp)
 	command.Subscribe(subp, tls)
 
-	msg.Payload = []byte("Another comment going in.\n")
+	msg.Payload = []byte("I would like to see all of them.\n")
 	fmt.Println("Calling Publish")
 	command.Publish(msg, tls)
 
@@ -129,5 +130,11 @@ func handleIncomin(buf []byte, conn net.Conn) {
 		sub := pkt.(*packet.SubackPacket)
 		fmt.Printf("PacketID:%v\n\n", sub.PacketID)
 		fmt.Printf("ReturnCodes:%v\n\n", sub.ReturnCodes)
+	case packet.PUBLISH:
+		fmt.Printf("\nPUBLISH:\n")
+		p := pkt.(*packet.PublishPacket)
+		fmt.Printf("%v, Topic: %v, Payload: %v \n ", time.Now(), p.Message.Topic, string(p.Message.Payload))
+		//fmt.Println("\tPayload:" + string(p.Message.Payload))
+		//brk.Bundle.Publish(&p.Message, conn)
 	}
 }

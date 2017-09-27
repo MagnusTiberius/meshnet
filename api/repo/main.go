@@ -58,7 +58,7 @@ func (t *Bundle) Subscribe(sub *packet.Subscription, conn net.Conn) {
 	}
 	ti, ok := t.TopicList[sub.Topic]
 	if !ok {
-		fmt.Printf("Repo.Subscribe 2: %v : %v \n", addr, sub.Topic)
+		//fmt.Printf("Repo.Subscribe 2: %v : %v \n", addr, sub.Topic)
 		t.TopicList[sub.Topic] = &TopicItem{
 			ConnList: map[string]net.Conn{addr: conn},
 		}
@@ -69,13 +69,10 @@ func (t *Bundle) Subscribe(sub *packet.Subscription, conn net.Conn) {
 	}
 	_, ok = ti.ConnList[addr]
 	if !ok {
-		fmt.Printf("Repo.Subscribe 3: %v : %v \n", addr, sub.Topic)
-		//t.TopicList[sub.Topic] = &TopicItem{
-		//	ConnList: map[string]net.Conn{addr: conn},
-		//}
+		//fmt.Printf("Repo.Subscribe 3: %v : %v \n", addr, sub.Topic)
 		ti.ConnList[addr] = conn
 		return
 	}
-	fmt.Printf("Repo.Subscribe 4: %v \n", addr)
+	//fmt.Printf("Repo.Subscribe 4: %v \n", addr)
 	ti.ConnList[addr] = conn
 }
