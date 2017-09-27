@@ -12,6 +12,9 @@ Protocol:
 Status:
 ```
    9/25/2017 - Implemented connect and connect-ack.
+   9/27/2017 - Implemented publish, Subscribe.
+               Implemented message dispatcher.
+               Implemented removal of closed connections.
 ```
 
 Dependencies:
