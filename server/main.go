@@ -85,6 +85,26 @@ func handleIncoming(buf []byte, conn net.Conn) {
 
 }
 
+func replySubscriptionAck(c net.Conn) {
+	fmt.Println("replySubscriptionAck")
+	ack := packet.NewSubackPacket()
+	//ack.ReturnCode = []byte{0, 1}
+	//ack.SessionPresent = true
+
+	// Allocate buffer.
+	buf := make([]byte, ack.Len())
+
+	// Encode the packet.
+	if _, err := ack.Encode(buf); err != nil {
+		panic(err) // error while encoding
+	}
+
+	c.Write(buf)
+	c.Write([]byte("\n"))
+	fmt.Printf("replySubscriptionAck...done: %v \n", buf)
+
+}
+
 func replyConnectionAck(c net.Conn) {
 	fmt.Println("replyConnectionAck")
 	ack := packet.NewConnackPacket()

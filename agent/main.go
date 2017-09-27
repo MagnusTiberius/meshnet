@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"log"
 	"net"
 
 	"github.com/MagnusTiberius/meshnet/api/client"
@@ -10,7 +12,7 @@ import (
 )
 
 var (
-	uid uint16 = 1
+	uid uint16 = 100
 )
 
 func main() {
@@ -20,25 +22,18 @@ func main() {
 		ClientPEM: "secure/certs/client.pem",
 		ClientKey: "secure/certs/client.key",
 	}
-
-	c := client.NewClient()
-	tls := c.NewTLS(&cfg)
+	tls := client.NewTLS(&cfg)
 
 	if tls == nil {
-		return
+		panic("null connection")
 	}
 
-	c.HandleIncoming = handleIncoming
-	fmt.Println("Calling HandleReceive")
-	go c.HandleReceive(tls)
-
 	// Connect
-	p := packet.NewConnectPacket()
-	p.Username = "gomqtt"
-	p.Password = "amazing!"
+	packet := packet.NewConnectPacket()
+	packet.Username = "gomqtt"
+	packet.Password = "amazing!"
 
-	fmt.Println("Calling Connect")
-	c.Connect(p, tls)
+	command.Connect(packet, tls)
 
 	msg := command.NewMessage()
 	msg.Topic = "welcome/all"
@@ -67,13 +62,32 @@ func main() {
 	fmt.Println("Calling Publish")
 	command.Publish(msg, tls)
 
-	for {
+	go handleReceive(tls)
 
-	}
+	handleReceive(tls)
+
+	//log.Print("client: exiting")
+}
+
+func initSenders(conn net.Conn) {
 
 }
 
-func handleIncoming(buf []byte, conn net.Conn) {
+func handleReceive(conn net.Conn) {
+	//reply := make([]byte, 4096)
+	br := bufio.NewReader(conn)
+	for {
+		//n, err := conn.Read(reply)
+		msg, err := br.ReadBytes('\n')
+		if err != nil {
+			log.Fatalf("client: write: %s", err)
+		}
+		//log.Printf("client: read %q (%d bytes)", string(reply[:n]), n)
+		handleIncomin(msg, conn)
+	}
+}
+
+func handleIncomin(buf []byte, conn net.Conn) {
 	// Detect packet.
 	l, mt := packet.DetectPacket(buf)
 
