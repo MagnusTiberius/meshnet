@@ -80,14 +80,18 @@ func handleIncoming(buf []byte, conn net.Conn) {
 	case packet.SUBSCRIBE:
 		fmt.Printf("\nSUBSCRIBE:\n")
 		p := pkt.(*packet.SubscribePacket)
+
 		fmt.Printf("Subscriptions: %v \n", p.Subscriptions)
+		replySubscriptionAck(conn, p.PacketID)
 	}
 
 }
 
-func replySubscriptionAck(c net.Conn) {
+func replySubscriptionAck(c net.Conn, uid uint16) {
 	fmt.Println("replySubscriptionAck")
 	ack := packet.NewSubackPacket()
+	ack.PacketID = uid
+	ack.ReturnCodes = []uint8{0, 0}
 	//ack.ReturnCode = []byte{0, 1}
 	//ack.SessionPresent = true
 
@@ -100,7 +104,7 @@ func replySubscriptionAck(c net.Conn) {
 	}
 
 	c.Write(buf)
-	c.Write([]byte("\n"))
+	c.Write([]byte("\n\n"))
 	fmt.Printf("replySubscriptionAck...done: %v \n", buf)
 
 }

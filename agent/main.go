@@ -118,5 +118,10 @@ func handleIncomin(buf []byte, conn net.Conn) {
 	case packet.CONNACK:
 		ack := pkt2.(*packet.ConnackPacket)
 		fmt.Printf("ReturnCode:%v\n\n", ack.ReturnCode)
+	case packet.SUBACK:
+		fmt.Printf("SUBACK:\n\n")
+		sub := pkt2.(*packet.SubackPacket)
+		fmt.Printf("PacketID:%v\n\n", sub.PacketID)
+		fmt.Printf("ReturnCodes:%v\n\n", sub.ReturnCodes)
 	}
 }
