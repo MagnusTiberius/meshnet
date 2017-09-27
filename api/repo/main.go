@@ -16,6 +16,7 @@ type TopicItem struct {
 	ConnList   map[string]net.Conn
 	Messages   []*packet.Message
 	CurrentMsg *packet.Message
+	LastSent   int64
 }
 
 //Bundle todo ...
@@ -26,17 +27,20 @@ type Bundle struct {
 //NewBundle todo ...
 func NewBundle() *Bundle {
 	return &Bundle{
-		TopicList: map[string]*TopicItem{},
+		TopicList: map[string]*TopicItem{"test*": &TopicItem{}},
 	}
 }
 
 //Publish todo ...
 func (t *Bundle) Publish(msg *packet.Message, conn net.Conn) {
-	ti := t.TopicList[msg.Topic]
-	if ti == nil {
+	addr := fmt.Sprintf("%v", conn.RemoteAddr())
+	fmt.Printf("Repo.Publish: %v \n", addr)
+	ti, ok := t.TopicList[msg.Topic]
+	if !ok {
 		ti = &TopicItem{
 			Messages:   []*packet.Message{msg},
 			CurrentMsg: msg,
+			LastSent:   -1,
 		}
 		t.TopicList[msg.Topic] = ti
 		return
@@ -47,13 +51,21 @@ func (t *Bundle) Publish(msg *packet.Message, conn net.Conn) {
 
 //Subscribe todo ...
 func (t *Bundle) Subscribe(sub *packet.Subscription, conn net.Conn) {
-	ti := t.TopicList[sub.Topic]
-	if ti == nil {
-		ti = &TopicItem{
-			ConnList: map[string]net.Conn{fmt.Sprintf("%v", conn.RemoteAddr()): conn},
+	addr := fmt.Sprintf("%v", conn.RemoteAddr())
+	fmt.Printf("Repo.Subscribe: %v \n", addr)
+	ti, ok := t.TopicList[sub.Topic]
+	if !ok {
+		t.TopicList[sub.Topic] = &TopicItem{
+			ConnList: map[string]net.Conn{addr: conn},
 		}
-		t.TopicList[sub.Topic] = ti
 		return
 	}
-	ti.ConnList[fmt.Sprintf("%v", conn.RemoteAddr())] = conn
+	_, ok = ti.ConnList[addr]
+	if !ok {
+		t.TopicList[sub.Topic] = &TopicItem{
+			ConnList: map[string]net.Conn{addr: conn},
+		}
+		return
+	}
+	ti.ConnList[addr] = conn
 }

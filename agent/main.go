@@ -55,6 +55,9 @@ func main() {
 	sub2 := command.NewSubscription()
 	sub2.Topic = "goodbye/all"
 	subp.Subscriptions = append(subp.Subscriptions, sub2)
+	sub3 := command.NewSubscription()
+	sub3.Topic = "awesome/all"
+	subp.Subscriptions = append(subp.Subscriptions, sub3)
 	fmt.Printf("Calling Subscribe: %v \n", subp)
 	command.Subscribe(subp, tls)
 
