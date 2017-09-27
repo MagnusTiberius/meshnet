@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"os"
@@ -38,12 +39,32 @@ func main() {
 		Key:  "secure/certs/server.key",
 	}
 	broker.Listener = server.ListenerTLS(&cfg)
+
+	conns := broker.HandleConns(broker.Listener)
+
 	broker.HandleIncoming = handleIncoming
 
 	go startServer(broker)
 
-	broker.Accept()
+	//broker.Accept()
+	for {
+		go handleConn(<-conns, broker)
+	}
 
+}
+
+func handleConn(c net.Conn, broker *server.Broker) {
+	b := bufio.NewReader(c)
+	for {
+		msg, err := b.ReadBytes('\n')
+		if err != nil {
+			break
+		}
+		//fmt.Printf("%v:%s", c.RemoteAddr(), string(msg))
+		//c.Write(msg)
+		//handleEvent(Event{Name: "CLIENT_MSG", Client: c, Msg: msg})
+		handleIncoming(msg, c, broker)
+	}
 }
 
 func startServer(b *server.Broker) {
@@ -55,6 +76,10 @@ func startServer(b *server.Broker) {
 			for _, d := range v.ConnList {
 				addr := d.RemoteAddr()
 				fmt.Printf("\taddr: %v \n", addr)
+				_, err := d.Read([]byte{})
+				if err != nil {
+					delete(v.ConnList, fmt.Sprintf("%v", addr))
+				}
 			}
 		}
 	}
@@ -112,7 +137,7 @@ func replySubscriptionAck(c net.Conn, uid uint16) {
 	fmt.Println("replySubscriptionAck")
 	ack := packet.NewSubackPacket()
 	ack.PacketID = uid
-	ack.ReturnCodes = []uint8{0, 0}
+	ack.ReturnCodes = []uint8{0}
 	//ack.ReturnCode = []byte{0, 1}
 	//ack.SessionPresent = true
 
@@ -125,7 +150,7 @@ func replySubscriptionAck(c net.Conn, uid uint16) {
 	}
 
 	c.Write(buf)
-	c.Write([]byte("\n\n"))
+	c.Write([]byte("\n"))
 	fmt.Printf("replySubscriptionAck...done: %v \n", buf)
 
 }

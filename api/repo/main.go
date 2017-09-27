@@ -53,19 +53,29 @@ func (t *Bundle) Publish(msg *packet.Message, conn net.Conn) {
 func (t *Bundle) Subscribe(sub *packet.Subscription, conn net.Conn) {
 	addr := fmt.Sprintf("%v", conn.RemoteAddr())
 	fmt.Printf("Repo.Subscribe: %v \n", addr)
+	if t.TopicList == nil {
+		t.TopicList = make(map[string]*TopicItem)
+	}
 	ti, ok := t.TopicList[sub.Topic]
 	if !ok {
+		fmt.Printf("Repo.Subscribe 2: %v : %v \n", addr, sub.Topic)
 		t.TopicList[sub.Topic] = &TopicItem{
 			ConnList: map[string]net.Conn{addr: conn},
 		}
 		return
+	}
+	if ti.ConnList == nil {
+		ti.ConnList = make(map[string]net.Conn)
 	}
 	_, ok = ti.ConnList[addr]
 	if !ok {
-		t.TopicList[sub.Topic] = &TopicItem{
-			ConnList: map[string]net.Conn{addr: conn},
-		}
+		fmt.Printf("Repo.Subscribe 3: %v : %v \n", addr, sub.Topic)
+		//t.TopicList[sub.Topic] = &TopicItem{
+		//	ConnList: map[string]net.Conn{addr: conn},
+		//}
+		ti.ConnList[addr] = conn
 		return
 	}
+	fmt.Printf("Repo.Subscribe 4: %v \n", addr)
 	ti.ConnList[addr] = conn
 }

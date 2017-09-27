@@ -16,13 +16,14 @@ var (
 )
 
 func main() {
-
+	fmt.Printf("00001\n")
 	cfg := client.ConfigTLS{
 		Addr:      "127.0.0.1:8000",
 		ClientPEM: "secure/certs/client.pem",
 		ClientKey: "secure/certs/client.key",
 	}
 	tls := client.NewTLS(&cfg)
+	fmt.Printf("00002\n")
 
 	if tls == nil {
 		panic("null connection")
@@ -105,6 +106,8 @@ func handleIncomin(buf []byte, conn net.Conn) {
 	if err != nil {
 		panic(err) // packet type is invalid
 	}
+
+	//fmt.Printf("BUF: %v, %v \n", buf, string(buf))
 
 	// Decode packet.
 	_, err = pkt.Decode(buf)

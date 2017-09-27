@@ -2,6 +2,7 @@ package client
 
 import (
 	"crypto/tls"
+	"fmt"
 	"log"
 	"net"
 )
@@ -15,17 +16,22 @@ type ConfigTLS struct {
 
 //NewTLS todo...
 func NewTLS(cfg *ConfigTLS) net.Conn {
+	fmt.Printf("A000001\n")
 	cert, err := tls.LoadX509KeyPair(cfg.ClientPEM, cfg.ClientKey)
 	if err != nil {
 		log.Fatalf("server: loadkeys: %s", err)
-		return nil
+		panic(err)
+		//return nil
 	}
+	fmt.Printf("A000002\n")
 	config := tls.Config{Certificates: []tls.Certificate{cert}, InsecureSkipVerify: true}
 	conn, err := tls.Dial("tcp", cfg.Addr, &config)
 	if err != nil {
 		log.Fatalf("client: dial: %s", err)
-		return nil
+		panic(err)
+		//return nil
 	}
+	fmt.Printf("A000003\n")
 	log.Println("client: connected to: ", conn.RemoteAddr())
 	/*
 		state := conn.ConnectionState()
