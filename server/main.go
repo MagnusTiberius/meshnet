@@ -70,12 +70,15 @@ func startServer(b *server.Broker) {
 		time.Sleep(1000 * time.Millisecond)
 		fmt.Printf(".")
 		for kcn, kv := range connPool {
-			_, err := replyConnectionAck(kv)
-			if err != nil {
-				fmt.Printf("Conn Closed: %v \n", kcn)
-				for _, v := range b.Bundle.TopicList {
-					fmt.Printf("Removing element %v\n", kcn)
-					delete(v.ConnList, kcn)
+			if kv != nil {
+				_, err := replyConnectionAck(kv)
+				if err != nil {
+					fmt.Printf("Conn Closed: %v \n", kcn)
+					for _, v := range b.Bundle.TopicList {
+						fmt.Printf("Removing element %v\n", kcn)
+						delete(v.ConnList, kcn)
+					}
+					connPool[kcn] = nil
 				}
 			}
 		}
