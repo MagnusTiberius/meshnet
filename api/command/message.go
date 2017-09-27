@@ -1,7 +1,7 @@
 package command
 
 import (
-	"github.com/gomqtt/packet"
+	"github.com/MagnusTiberius/packet"
 )
 
 //NewMessage returns a new packet message

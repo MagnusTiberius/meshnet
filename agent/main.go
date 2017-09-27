@@ -9,7 +9,7 @@ import (
 
 	"github.com/MagnusTiberius/meshnet/api/client"
 	"github.com/MagnusTiberius/meshnet/api/command"
-	"github.com/gomqtt/packet"
+	"github.com/MagnusTiberius/packet"
 )
 
 var (

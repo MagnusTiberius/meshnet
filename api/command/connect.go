@@ -3,7 +3,7 @@ package command
 import (
 	"net"
 
-	"github.com/gomqtt/packet"
+	"github.com/MagnusTiberius/packet"
 )
 
 //Connect send public to broker

@@ -12,11 +12,11 @@ Protocol:
 Status:
 ```
    9/25/2017 - Implemented connect and connect-ack.
-   9/27/2017 - Implemented publish, Subscribe.
+   9/27/2017 - Implemented publish, subscribe.
                Implemented message dispatcher.
                Implemented removal of closed connections.
 ```
 
 Dependencies:
 
-1. go get github.com/gomqtt/packet
+1. go get github.com/MagnusTiberius/packet
