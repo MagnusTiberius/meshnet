@@ -4,7 +4,7 @@ import (
 	"net"
 
 	"github.com/MagnusTiberius/meshnet/api/command"
-	"github.com/gomqtt/packet"
+	"github.com/MagnusTiberius/packet"
 )
 
 //Config todo ...
