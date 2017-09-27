@@ -43,7 +43,7 @@ func main() {
 }
 
 //handleIncoming todo ...
-func handleIncoming(buf []byte, conn net.Conn) {
+func handleIncoming(buf []byte, conn net.Conn, brk *server.Broker) {
 	// Detect packet.
 	l, mt := packet.DetectPacket(buf)
 
@@ -77,12 +77,15 @@ func handleIncoming(buf []byte, conn net.Conn) {
 		p := pkt.(*packet.PublishPacket)
 		fmt.Println("Topic:" + p.Message.Topic)
 		fmt.Println("Payload:" + string(p.Message.Payload))
+		brk.Bundle.Publish(&p.Message, conn)
 	case packet.SUBSCRIBE:
 		fmt.Printf("\nSUBSCRIBE:\n")
 		p := pkt.(*packet.SubscribePacket)
-
 		fmt.Printf("Subscriptions: %v \n", p.Subscriptions)
 		replySubscriptionAck(conn, p.PacketID)
+		for _, s := range p.Subscriptions {
+			brk.Bundle.Subscribe(&s, conn)
+		}
 	}
 
 }

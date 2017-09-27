@@ -7,17 +7,22 @@ import (
 	"fmt"
 	"log"
 	"net"
+
+	"github.com/MagnusTiberius/meshnet/api/repo"
 )
 
 //Broker todo ...
 type Broker struct {
 	Listener       net.Listener
-	HandleIncoming func(buf []byte, conn net.Conn)
+	HandleIncoming func(buf []byte, conn net.Conn, brk *Broker)
+	Bundle         *repo.Bundle
 }
 
 //NewBroker todo ...
 func NewBroker() *Broker {
-	return &Broker{}
+	return &Broker{
+		Bundle: repo.NewBundle(),
+	}
 }
 
 //Accept todo ...
@@ -52,6 +57,6 @@ func (b *Broker) HandleConn(conn net.Conn) {
 			break
 		}
 
-		go b.HandleIncoming(msg, conn)
+		go b.HandleIncoming(msg, conn, b)
 	}
 }

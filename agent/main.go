@@ -98,29 +98,29 @@ func handleIncomin(buf []byte, conn net.Conn) {
 	}
 
 	// Create packet.
-	pkt2, err := mt.New()
+	pkt, err := mt.New()
 	if err != nil {
 		panic(err) // packet type is invalid
 	}
 
 	// Decode packet.
-	_, err = pkt2.Decode(buf)
+	_, err = pkt.Decode(buf)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		panic(err) // there was an error while decoding
 	}
 
-	switch pkt2.Type() {
+	switch pkt.Type() {
 	case packet.CONNECT:
-		c := pkt2.(*packet.ConnectPacket)
+		c := pkt.(*packet.ConnectPacket)
 		fmt.Println(c.Username)
 		fmt.Println(c.Password)
 	case packet.CONNACK:
-		ack := pkt2.(*packet.ConnackPacket)
+		ack := pkt.(*packet.ConnackPacket)
 		fmt.Printf("ReturnCode:%v\n\n", ack.ReturnCode)
 	case packet.SUBACK:
 		fmt.Printf("SUBACK:\n\n")
-		sub := pkt2.(*packet.SubackPacket)
+		sub := pkt.(*packet.SubackPacket)
 		fmt.Printf("PacketID:%v\n\n", sub.PacketID)
 		fmt.Printf("ReturnCodes:%v\n\n", sub.ReturnCodes)
 	}
