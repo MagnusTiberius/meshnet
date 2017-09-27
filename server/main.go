@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"time"
 
 	"github.com/MagnusTiberius/meshnet/api/server"
 	"github.com/gomqtt/packet"
@@ -38,8 +39,25 @@ func main() {
 	}
 	broker.Listener = server.ListenerTLS(&cfg)
 	broker.HandleIncoming = handleIncoming
+
+	go startServer(broker)
+
 	broker.Accept()
 
+}
+
+func startServer(b *server.Broker) {
+	for {
+		time.Sleep(1000 * time.Millisecond)
+		fmt.Printf(".")
+		for key, v := range b.Bundle.TopicList {
+			fmt.Printf("key: %v \n", key)
+			for _, d := range v.ConnList {
+				addr := d.RemoteAddr()
+				fmt.Printf("\taddr: %v \n", addr)
+			}
+		}
+	}
 }
 
 //handleIncoming todo ...
