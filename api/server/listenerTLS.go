@@ -112,8 +112,10 @@ func Start(b *Broker, fh FuncHandler) {
 				log.Printf("\taddr: %v \n", addr)
 				h := v.LastSent
 				g := len(v.Messages)
+				//fmt.Printf("\tlast sent: %v; size: %v \n", h, g)
 				for k, m := range v.Messages {
-					if int64(k) > h {
+					//fmt.Printf("\tlast sent: %v; size: %v; k = %v \n", h, g, k+1)
+					if int64(k+1) > h {
 						log.Printf("\t\tmsg: %v \n", string(m.Payload))
 						_, err := command.Publish(m, d)
 						if err != nil {
@@ -121,7 +123,8 @@ func Start(b *Broker, fh FuncHandler) {
 						}
 					}
 				}
-				v.LastSent = int64(g)
+				//v.LastSent = int64(g)
+				b.Bundle.TopicList[key].LastSent = int64(g)
 			}
 		}
 	}

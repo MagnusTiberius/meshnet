@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net"
-	"time"
 
 	"github.com/MagnusTiberius/meshnet/api/client"
 	"github.com/MagnusTiberius/meshnet/api/command"
@@ -38,35 +36,20 @@ func main() {
 
 	command.Connect(packet, tls)
 
-	msg := command.NewMessage()
-	msg.Topic = "welcome/all"
-	msg.Payload = []byte("Hey this is a hello message.\n")
-
-	log.Println("Calling Publish")
-	command.Publish(msg, tls)
-
-	msg.Payload = []byte("Another comment going in.\n")
-	log.Println("Calling Publish")
-	command.Publish(msg, tls)
-
 	subp := command.NewSubscribePacket()
 	subp.PacketID = uid
 	uid = uid + 1
+
 	sub := command.NewSubscription()
-	sub.Topic = "welcome/all"
+	sub.Topic = "device/sensor/1"
 	subp.Subscriptions = append(subp.Subscriptions, sub)
-	sub2 := command.NewSubscription()
-	sub2.Topic = "goodbye/all"
-	subp.Subscriptions = append(subp.Subscriptions, sub2)
-	sub3 := command.NewSubscription()
-	sub3.Topic = "awesome/all"
-	subp.Subscriptions = append(subp.Subscriptions, sub3)
+
+	sub = command.NewSubscription()
+	sub.Topic = "device/sensor/2"
+	subp.Subscriptions = append(subp.Subscriptions, sub)
+
 	log.Printf("Calling Subscribe: %v \n", subp)
 	command.Subscribe(subp, tls)
-
-	msg.Payload = []byte("I would like to see all of them.\n")
-	log.Println("Calling Publish")
-	command.Publish(msg, tls)
 
 	fh := client.FuncHandler{
 		OnConnect:     OnConnect,
@@ -75,37 +58,28 @@ func main() {
 		OnPingRequest: OnPingRequest,
 	}
 
-	go client.HandleReceive(tls, fh)
+	//go client.HandleReceive(tls, fh)
 
-	//client.HandleReceive(tls, fh)
-
-	msg1 := command.NewMessage()
-	msg1.Topic = "device/sensor/1"
-	for {
-		num := rand.Float64() * 100
-		msg1.Payload = []byte(fmt.Sprintf("{\"sensor\":\"watt meter\", \"value\":%v}\n", num))
-		command.Publish(msg1, tls)
-		time.Sleep(3000 * time.Millisecond)
-	}
-
+	client.HandleReceive(tls, fh)
 }
 
 //OnConnect todo ...
 func OnConnect(conn net.Conn, pkt packet.Packet) {
-	log.Printf("OnConnect\n")
+	//log.Printf("OnConnect\n")
 }
 
 //OnPublish todo ...
 func OnPublish(conn net.Conn, pkt packet.Packet) {
-	log.Printf("OnPublish\n")
+	p := pkt.(*packet.PublishPacket)
+	fmt.Printf("Topic:%v; Payload:%v\n", p.Message.Topic, string(p.Message.Payload))
 }
 
 //OnSubscribe todo ...
 func OnSubscribe(conn net.Conn, pkt packet.Packet) {
-	log.Printf("OnSubscribe\n")
+	//log.Printf("OnSubscribe\n")
 }
 
 //OnPingRequest todo ...
 func OnPingRequest(conn net.Conn, pkt packet.Packet) {
-	log.Printf("OnPingRequest\n")
+	//log.Printf("OnPingRequest\n")
 }

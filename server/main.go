@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -24,7 +25,7 @@ type Event struct {
 }
 
 func main() {
-	//log.SetOutput(ioutil.Discard)
+	log.SetOutput(ioutil.Discard)
 
 	if len(os.Args) == 2 {
 		tlsOk = os.Args[1]
