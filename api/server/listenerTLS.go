@@ -31,10 +31,11 @@ type Config struct {
 
 //FuncHandler todo ...
 type FuncHandler struct {
-	OnConnect    func(conn net.Conn, pkt packet.Packet)
-	OnPublish    func(conn net.Conn, pkt packet.Packet)
-	OnSubscribe  func(conn net.Conn, pkt packet.Packet)
-	OnDisconnect func(conn net.Conn, pkt packet.Packet)
+	OnConnect     func(conn net.Conn, pkt packet.Packet)
+	OnPublish     func(conn net.Conn, pkt packet.Packet)
+	OnSubscribe   func(conn net.Conn, pkt packet.Packet)
+	OnDisconnect  func(conn net.Conn, pkt packet.Packet)
+	OnPingRequest func(conn net.Conn, pkt packet.Packet)
 }
 
 //ListenerTLS todo ...
@@ -156,6 +157,9 @@ func handleIncoming(buf []byte, conn net.Conn, brk *Broker) {
 	switch pkt.Type() {
 	case packet.PINGREQ:
 		pingReply(conn)
+		if funcHandler.OnPingRequest != nil {
+			funcHandler.OnConnect(conn, pkt)
+		}
 	case packet.PINGRESP:
 		log.Printf("Ping response\n")
 	case packet.CONNECT:

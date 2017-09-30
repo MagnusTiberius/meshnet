@@ -43,10 +43,11 @@ func main() {
 	conns := broker.HandleConns(broker.Listener)
 
 	fh := server.FuncHandler{
-		OnConnect:    OnConnect,
-		OnPublish:    OnPublish,
-		OnSubscribe:  OnSubscribe,
-		OnDisconnect: OnDisconnect,
+		OnConnect:     OnConnect,
+		OnPublish:     OnPublish,
+		OnSubscribe:   OnSubscribe,
+		OnDisconnect:  OnDisconnect,
+		OnPingRequest: OnPingRequest,
 	}
 
 	go server.Start(broker, fh)
@@ -75,4 +76,9 @@ func OnSubscribe(conn net.Conn, pkt packet.Packet) {
 //OnDisconnect todo ...
 func OnDisconnect(conn net.Conn, pkt packet.Packet) {
 	log.Printf("OnDisconnect\n")
+}
+
+//OnPingRequest todo ...
+func OnPingRequest(conn net.Conn, pkt packet.Packet) {
+	log.Printf("OnPingRequest\n")
 }
