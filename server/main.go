@@ -71,7 +71,7 @@ func startServer(b *server.Broker) {
 		fmt.Printf(".")
 		for kcn, kv := range connPool {
 			if kv != nil {
-				_, err := replyConnectionAck(kv)
+				_, err := pingClient(kv)
 				if err != nil {
 					fmt.Printf("Conn Closed: %v \n", kcn)
 					for _, v := range b.Bundle.TopicList {
@@ -128,6 +128,10 @@ func handleIncoming(buf []byte, conn net.Conn, brk *server.Broker) {
 	}
 
 	switch pkt.Type() {
+	case packet.PINGREQ:
+		pingReply(conn)
+	case packet.PINGRESP:
+		fmt.Printf("Ping response\n")
 	case packet.CONNECT:
 		fmt.Printf("\nCONNECT:\n")
 		c := pkt.(*packet.ConnectPacket)
@@ -177,6 +181,42 @@ func replySubscriptionAck(c net.Conn, uid uint16) {
 	c.Write([]byte("\n"))
 	fmt.Printf("replySubscriptionAck...done: %v \n", buf)
 
+}
+
+//pingClient todo ...
+func pingClient(c net.Conn) (n int, err error) {
+	fmt.Printf("PingClient %v\n", c.RemoteAddr())
+	ping := packet.NewPingreqPacket()
+
+	// Allocate buffer.
+	buf := make([]byte, ping.Len())
+
+	// Encode the packet.
+	if _, err = ping.Encode(buf); err != nil {
+		panic(err) // error while encoding
+	}
+
+	n, err = c.Write(buf)
+	c.Write([]byte("\n"))
+	return n, err
+}
+
+//pingReply todo ...
+func pingReply(c net.Conn) (n int, err error) {
+	fmt.Println("pingReply")
+	pingack := packet.NewPingrespPacket()
+
+	// Allocate buffer.
+	buf := make([]byte, pingack.Len())
+
+	// Encode the packet.
+	if _, err = pingack.Encode(buf); err != nil {
+		panic(err) // error while encoding
+	}
+
+	n, err = c.Write(buf)
+	c.Write([]byte("\n"))
+	return n, err
 }
 
 func replyConnectionAck(c net.Conn) (n int, err error) {

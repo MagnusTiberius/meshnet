@@ -79,20 +79,18 @@ func initSenders(conn net.Conn) {
 }
 
 func handleReceive(conn net.Conn) {
-	//reply := make([]byte, 4096)
 	br := bufio.NewReader(conn)
 	for {
-		//n, err := conn.Read(reply)
 		msg, err := br.ReadBytes('\n')
 		if err != nil {
 			log.Fatalf("client: write: %s", err)
 		}
-		//log.Printf("client: read %q (%d bytes)", string(reply[:n]), n)
-		handleIncomin(msg, conn)
+		fmt.Printf("-")
+		handleIncoming(msg, conn)
 	}
 }
 
-func handleIncomin(buf []byte, conn net.Conn) {
+func handleIncoming(buf []byte, conn net.Conn) {
 	// Detect packet.
 	l, mt := packet.DetectPacket(buf)
 
@@ -108,8 +106,6 @@ func handleIncomin(buf []byte, conn net.Conn) {
 		panic(err) // packet type is invalid
 	}
 
-	//fmt.Printf("BUF: %v, %v \n", buf, string(buf))
-
 	// Decode packet.
 	_, err = pkt.Decode(buf)
 	if err != nil {
@@ -118,6 +114,10 @@ func handleIncomin(buf []byte, conn net.Conn) {
 	}
 
 	switch pkt.Type() {
+	case packet.PINGREQ:
+		pingReply(conn)
+	case packet.PINGRESP:
+		fmt.Printf("Ping response\n")
 	case packet.CONNECT:
 		c := pkt.(*packet.ConnectPacket)
 		fmt.Println(c.Username)
@@ -137,4 +137,39 @@ func handleIncomin(buf []byte, conn net.Conn) {
 		//fmt.Println("\tPayload:" + string(p.Message.Payload))
 		//brk.Bundle.Publish(&p.Message, conn)
 	}
+}
+
+func disconnect(c net.Conn) (n int, err error) {
+	fmt.Println("NewDisconnectPacket")
+	discon := packet.NewDisconnectPacket()
+
+	// Allocate buffer.
+	buf := make([]byte, discon.Len())
+
+	// Encode the packet.
+	if _, err = discon.Encode(buf); err != nil {
+		panic(err) // error while encoding
+	}
+
+	n, err = c.Write(buf)
+	c.Write([]byte("\n"))
+	return n, err
+}
+
+//pingReply todo ...
+func pingReply(c net.Conn) (n int, err error) {
+	fmt.Println("PingReply")
+	pingack := packet.NewPingrespPacket()
+
+	// Allocate buffer.
+	buf := make([]byte, pingack.Len())
+
+	// Encode the packet.
+	if _, err = pingack.Encode(buf); err != nil {
+		panic(err) // error while encoding
+	}
+
+	n, err = c.Write(buf)
+	c.Write([]byte("\n"))
+	return n, err
 }
