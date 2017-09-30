@@ -81,24 +81,29 @@ func HandleConns(l net.Listener) chan net.Conn {
 //Start todo ...
 func Start(b *Broker, fh FuncHandler) {
 	funcHandler = fh
+	ctr := 0
 	for {
+		ctr = ctr + 1
 		time.Sleep(100 * time.Millisecond)
 		//Walk the connection pool and check each network connection.
-		for kcn, kv := range connPool {
-			if kv != nil {
-				_, err := pingClient(kv)
-				if err != nil {
-					//Connection is lost, remove it from the pool/list.
-					log.Printf("Conn Closed: %v \n", kcn)
-					for _, v := range b.Bundle.TopicList {
-						log.Printf("Removing element %v\n", kcn)
-						delete(v.ConnList, kcn)
+		if ctr > 50 {
+			//five seconds has elapsed
+			for kcn, kv := range connPool {
+				if kv != nil {
+					_, err := pingClient(kv)
+					if err != nil {
+						//Connection is lost, remove it from the pool/list.
+						log.Printf("Conn Closed: %v \n", kcn)
+						for _, v := range b.Bundle.TopicList {
+							log.Printf("Removing element %v\n", kcn)
+							delete(v.ConnList, kcn)
+						}
+						connPool[kcn] = nil
 					}
-					connPool[kcn] = nil
 				}
 			}
+			ctr = 0
 		}
-
 		//Now, dispatch the messages to the subscribers
 		for key, v := range b.Bundle.TopicList {
 			log.Printf("key: %v \n", key)
