@@ -1,6 +1,9 @@
 # meshnet
 Secure Mesh Topology
 
+Decentralized distributed MQTT broker and client running on TCP and TLS (key and pem). Use private and public keys to implement trust connection in an untrusted public network. Data is encrypted using TLS and joining a network require public keys.
+
+
 Meshnet is an implementation of MQTT running on TCP. It supports TLS using SSL certificates.
 
 Protocol:
