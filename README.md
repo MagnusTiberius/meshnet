@@ -18,6 +18,7 @@ Status:
    9/27/2017 - Implemented publish, subscribe.
                Implemented message dispatcher.
                Implemented removal of closed connections.
+               Implemented pingreq, pingresp, disconnect
 ```
 
 Dependencies:
