@@ -84,9 +84,9 @@ func Start(b *Broker, fh FuncHandler) {
 	ctr := 0
 	for {
 		ctr = ctr + 1
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(1000 * time.Millisecond)
 		//Walk the connection pool and check each network connection.
-		if ctr > 50 {
+		if ctr > 5 {
 			//five seconds has elapsed
 			for kcn, kv := range connPool {
 				if kv != nil {
@@ -205,6 +205,7 @@ func handleIncoming(buf []byte, conn net.Conn, brk *Broker) {
 			funcHandler.OnSubscribe(conn, pkt)
 		}
 	case packet.DISCONNECT:
+		conn.Close()
 		if funcHandler.OnDisconnect != nil {
 			funcHandler.OnDisconnect(conn, pkt)
 		}

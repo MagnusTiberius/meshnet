@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net"
+	"time"
 
 	"github.com/MagnusTiberius/meshnet/api/client"
 	"github.com/MagnusTiberius/meshnet/api/command"
@@ -72,9 +75,18 @@ func main() {
 		OnPingRequest: OnPingRequest,
 	}
 
-	//go client.HandleReceive(tls, fh)
+	go client.HandleReceive(tls, fh)
 
-	client.HandleReceive(tls, fh)
+	//client.HandleReceive(tls, fh)
+
+	for {
+		msg1 := command.NewMessage()
+		msg1.Topic = "device/sensor/1"
+		num := rand.Float64() * 100
+		msg1.Payload = []byte(fmt.Sprintf("{\"sensor\":\"watt meter\", \"value\":%v}\n", num))
+		command.Publish(msg1, tls)
+		time.Sleep(3000 * time.Millisecond)
+	}
 
 }
 
