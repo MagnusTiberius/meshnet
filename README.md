@@ -33,15 +33,19 @@ Example | Demo
 ```
    Broker: 
        - See sample broker program
+       - usage: go run ./serrver/main.go
 ```
 
 ```
    Publishers:
        - Two demo programs are provided for pushing sensor data to the broker.
+       - usage: go run ./agentsensor1/main.go
+       - usage: go run ./agentsensor2/main.go
 ```
 
 ```
    Subscriber:
        - One demo program for a subscriber.
+       - usage: go run ./agentmobiledevice1/main.go
 ```
 
