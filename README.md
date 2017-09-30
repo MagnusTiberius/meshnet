@@ -27,3 +27,21 @@ Status:
 Dependencies:
 
 1. go get github.com/MagnusTiberius/packet
+
+Example | Demo
+
+```
+   Broker: 
+       - See sample broker program
+```
+
+```
+   Publishers:
+       - Two demo programs are provided for pushing sensor data to the broker.
+```
+
+```
+   Subscriber:
+       - One demo program for a subscriber.
+```
+
