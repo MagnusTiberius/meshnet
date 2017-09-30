@@ -10,6 +10,19 @@ import (
 	"github.com/MagnusTiberius/packet"
 )
 
+var (
+	funcHandler FuncHandler
+)
+
+//FuncHandler todo ...
+type FuncHandler struct {
+	OnConnect     func(conn net.Conn, pkt packet.Packet)
+	OnPublish     func(conn net.Conn, pkt packet.Packet)
+	OnSubscribe   func(conn net.Conn, pkt packet.Packet)
+	OnDisconnect  func(conn net.Conn, pkt packet.Packet)
+	OnPingRequest func(conn net.Conn, pkt packet.Packet)
+}
+
 //ConfigTLS todo ...
 type ConfigTLS struct {
 	Addr      string
@@ -48,7 +61,8 @@ func NewTLS(cfg *ConfigTLS) net.Conn {
 }
 
 //HandleReceive todo ...
-func HandleReceive(conn net.Conn) {
+func HandleReceive(conn net.Conn, fh FuncHandler) {
+	funcHandler = fh
 	br := bufio.NewReader(conn)
 	for {
 		msg, err := br.ReadBytes('\n')
@@ -86,12 +100,18 @@ func HandleIncoming(buf []byte, conn net.Conn) {
 	switch pkt.Type() {
 	case packet.PINGREQ:
 		pingReply(conn)
+		if funcHandler.OnPingRequest != nil {
+			funcHandler.OnPingRequest(conn, pkt)
+		}
 	case packet.PINGRESP:
 		log.Printf("Ping response\n")
 	case packet.CONNECT:
 		c := pkt.(*packet.ConnectPacket)
 		log.Println(c.Username)
 		log.Println(c.Password)
+		if funcHandler.OnConnect != nil {
+			funcHandler.OnConnect(conn, pkt)
+		}
 	case packet.CONNACK:
 		ack := pkt.(*packet.ConnackPacket)
 		log.Printf("ReturnCode:%v\n\n", ack.ReturnCode)
@@ -101,6 +121,9 @@ func HandleIncoming(buf []byte, conn net.Conn) {
 		log.Printf("\nPUBLISH:\n")
 		p := pkt.(*packet.PublishPacket)
 		log.Printf("%v, Topic: %v, Payload: %v \n ", time.Now(), p.Message.Topic, string(p.Message.Payload))
+		if funcHandler.OnPublish != nil {
+			funcHandler.OnPublish(conn, pkt)
+		}
 	}
 }
 

@@ -158,7 +158,7 @@ func handleIncoming(buf []byte, conn net.Conn, brk *Broker) {
 	case packet.PINGREQ:
 		pingReply(conn)
 		if funcHandler.OnPingRequest != nil {
-			funcHandler.OnConnect(conn, pkt)
+			funcHandler.OnPingRequest(conn, pkt)
 		}
 	case packet.PINGRESP:
 		log.Printf("Ping response\n")

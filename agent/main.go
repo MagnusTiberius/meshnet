@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"log"
+	"net"
 
 	"github.com/MagnusTiberius/meshnet/api/client"
 	"github.com/MagnusTiberius/meshnet/api/command"
@@ -64,8 +65,35 @@ func main() {
 	log.Println("Calling Publish")
 	command.Publish(msg, tls)
 
-	go client.HandleReceive(tls)
+	fh := client.FuncHandler{
+		OnConnect:     OnConnect,
+		OnPublish:     OnPublish,
+		OnSubscribe:   OnSubscribe,
+		OnPingRequest: OnPingRequest,
+	}
 
-	client.HandleReceive(tls)
+	//go client.HandleReceive(tls, fh)
 
+	client.HandleReceive(tls, fh)
+
+}
+
+//OnConnect todo ...
+func OnConnect(conn net.Conn, pkt packet.Packet) {
+	log.Printf("OnConnect\n")
+}
+
+//OnPublish todo ...
+func OnPublish(conn net.Conn, pkt packet.Packet) {
+	log.Printf("OnPublish\n")
+}
+
+//OnSubscribe todo ...
+func OnSubscribe(conn net.Conn, pkt packet.Packet) {
+	log.Printf("OnSubscribe\n")
+}
+
+//OnPingRequest todo ...
+func OnPingRequest(conn net.Conn, pkt packet.Packet) {
+	log.Printf("OnPingRequest\n")
 }
