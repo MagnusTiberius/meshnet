@@ -20,6 +20,7 @@ Status:
                Implemented removal of closed connections.
    9/29/2017 - Implemented pingreq, pingresp, disconnect
                Implemented packet callbacks
+               Setup two sensor publishers and one mobile device subscriber
 ```
 
 Dependencies:
