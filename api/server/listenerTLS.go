@@ -82,12 +82,13 @@ func HandleConns(l net.Listener) chan net.Conn {
 func Start(b *Broker, fh FuncHandler) {
 	funcHandler = fh
 	for {
-		time.Sleep(1000 * time.Millisecond)
-		log.Printf(".")
+		time.Sleep(100 * time.Millisecond)
+		//Walk the connection pool and check each network connection.
 		for kcn, kv := range connPool {
 			if kv != nil {
 				_, err := pingClient(kv)
 				if err != nil {
+					//Connection is lost, remove it from the pool/list.
 					log.Printf("Conn Closed: %v \n", kcn)
 					for _, v := range b.Bundle.TopicList {
 						log.Printf("Removing element %v\n", kcn)
@@ -97,6 +98,8 @@ func Start(b *Broker, fh FuncHandler) {
 				}
 			}
 		}
+
+		//Now, dispatch the messages to the subscribers
 		for key, v := range b.Bundle.TopicList {
 			log.Printf("key: %v \n", key)
 			for _, d := range v.ConnList {
@@ -119,7 +122,7 @@ func Start(b *Broker, fh FuncHandler) {
 	}
 }
 
-//HandleConn todo ...
+//HandleConn  will handle the connection from the channel
 func HandleConn(c net.Conn, broker *Broker) {
 	b := bufio.NewReader(c)
 	for {
@@ -172,10 +175,10 @@ func handleIncoming(buf []byte, conn net.Conn, brk *Broker) {
 			connPool = make(map[string]net.Conn)
 		}
 		connPool[addr] = conn
+		replyConnectionAck(conn)
 		if funcHandler.OnConnect != nil {
 			funcHandler.OnConnect(conn, pkt)
 		}
-		replyConnectionAck(conn)
 	case packet.PUBLISH:
 		log.Printf("\nPUBLISH:\n")
 		p := pkt.(*packet.PublishPacket)
