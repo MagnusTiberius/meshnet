@@ -6,13 +6,13 @@ Decentralized distributed MQTT broker and client running on TCP and TLS (key and
 
 Meshnet is an implementation of MQTT running on TCP. It supports TLS using SSL certificates.
 
-##Protocol
+## Protocol
 ```
   MQTT
    http://mqtt.org/documentation
 ```
 
-##Status
+## Status
 ```
    9/25/2017 - Implemented connect and connect-ack.
    9/27/2017 - Implemented publish, subscribe.
@@ -24,11 +24,11 @@ Meshnet is an implementation of MQTT running on TCP. It supports TLS using SSL c
    9/30/2017 - Implemented unsubscribe and unsubscribe-ack
 ```
 
-##Dependencies
+## Dependencies
 
 1. go get github.com/MagnusTiberius/packet
 
-##Example | Demo
+## Example | Demo
 
 ```
    Broker: 
