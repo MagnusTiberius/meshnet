@@ -21,7 +21,7 @@ Status:
    9/29/2017 - Implemented pingreq, pingresp, disconnect
                Implemented packet callbacks
                Setup two sensor publishers and one mobile device subscriber
-   9/30/2017 - Implement unsubscribe and unsubscribe-ack
+   9/30/2017 - Implemented unsubscribe and unsubscribe-ack
 ```
 
 Dependencies:
