@@ -19,6 +19,7 @@ Status:
                Implemented message dispatcher.
                Implemented removal of closed connections.
    9/29/2017 - Implemented pingreq, pingresp, disconnect
+               Implemented packet callbacks
 ```
 
 Dependencies:
