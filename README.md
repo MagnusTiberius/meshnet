@@ -8,7 +8,7 @@ Meshnet is an implementation of MQTT running on TCP. It supports TLS using SSL c
 
 ## Protocol
 ```
-  MQTT
+   MQTT
    http://mqtt.org/documentation
 ```
 
@@ -26,7 +26,7 @@ Meshnet is an implementation of MQTT running on TCP. It supports TLS using SSL c
 
 ## Dependencies
 
-1. go get github.com/MagnusTiberius/packet
+* go get github.com/MagnusTiberius/packet
 
 ## Example | Demo
 
