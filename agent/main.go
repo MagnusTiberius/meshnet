@@ -79,9 +79,9 @@ func main() {
 
 	//client.HandleReceive(tls, fh)
 
+	msg1 := command.NewMessage()
+	msg1.Topic = "device/sensor/1"
 	for {
-		msg1 := command.NewMessage()
-		msg1.Topic = "device/sensor/1"
 		num := rand.Float64() * 100
 		msg1.Payload = []byte(fmt.Sprintf("{\"sensor\":\"watt meter\", \"value\":%v}\n", num))
 		command.Publish(msg1, tls)
