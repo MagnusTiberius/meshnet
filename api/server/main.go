@@ -37,7 +37,7 @@ func (b *Broker) HandleConns(l net.Listener) chan net.Conn {
 				//continue
 			}
 			i++
-			fmt.Printf("%d: %v accepted %v\n", i, client.LocalAddr(), client.RemoteAddr())
+			log.Printf("%d: %v accepted %v\n", i, client.LocalAddr(), client.RemoteAddr())
 			//conn_pool[fmt.Sprintf("%v", client.RemoteAddr())] = &client
 			//client.Write([]byte("Welcome to echoserver utopia\n"))
 			//handleEvent(Event{Name: "CONNECT_EVENT", Client: client})

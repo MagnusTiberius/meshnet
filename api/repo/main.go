@@ -2,6 +2,7 @@ package repo
 
 import (
 	"fmt"
+	"log"
 	"net"
 
 	"github.com/MagnusTiberius/packet"
@@ -34,7 +35,7 @@ func NewBundle() *Bundle {
 //Publish todo ...
 func (t *Bundle) Publish(msg *packet.Message, conn net.Conn) {
 	addr := fmt.Sprintf("%v", conn.RemoteAddr())
-	fmt.Printf("Repo.Publish: %v \n", addr)
+	log.Printf("Repo.Publish: %v \n", addr)
 	ti, ok := t.TopicList[msg.Topic]
 	if !ok {
 		ti = &TopicItem{
@@ -52,7 +53,7 @@ func (t *Bundle) Publish(msg *packet.Message, conn net.Conn) {
 //Subscribe todo ...
 func (t *Bundle) Subscribe(sub *packet.Subscription, conn net.Conn) {
 	addr := fmt.Sprintf("%v", conn.RemoteAddr())
-	fmt.Printf("Repo.Subscribe: %v \n", addr)
+	log.Printf("Repo.Subscribe: %v \n", addr)
 	if t.TopicList == nil {
 		t.TopicList = make(map[string]*TopicItem)
 	}

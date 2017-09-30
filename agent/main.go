@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"time"
@@ -17,14 +17,14 @@ var (
 )
 
 func main() {
-	fmt.Printf("00001\n")
+	log.SetOutput(ioutil.Discard)
+
 	cfg := client.ConfigTLS{
 		Addr:      "127.0.0.1:8000",
 		ClientPEM: "secure/certs/client.pem",
 		ClientKey: "secure/certs/client.key",
 	}
 	tls := client.NewTLS(&cfg)
-	fmt.Printf("00002\n")
 
 	if tls == nil {
 		panic("null connection")
@@ -41,11 +41,11 @@ func main() {
 	msg.Topic = "welcome/all"
 	msg.Payload = []byte("Hey this is a hello message.\n")
 
-	fmt.Println("Calling Publish")
+	log.Println("Calling Publish")
 	command.Publish(msg, tls)
 
 	msg.Payload = []byte("Another comment going in.\n")
-	fmt.Println("Calling Publish")
+	log.Println("Calling Publish")
 	command.Publish(msg, tls)
 
 	subp := command.NewSubscribePacket()
@@ -60,11 +60,11 @@ func main() {
 	sub3 := command.NewSubscription()
 	sub3.Topic = "awesome/all"
 	subp.Subscriptions = append(subp.Subscriptions, sub3)
-	fmt.Printf("Calling Subscribe: %v \n", subp)
+	log.Printf("Calling Subscribe: %v \n", subp)
 	command.Subscribe(subp, tls)
 
 	msg.Payload = []byte("I would like to see all of them.\n")
-	fmt.Println("Calling Publish")
+	log.Println("Calling Publish")
 	command.Publish(msg, tls)
 
 	go handleReceive(tls)
@@ -85,7 +85,7 @@ func handleReceive(conn net.Conn) {
 		if err != nil {
 			log.Fatalf("client: write: %s", err)
 		}
-		fmt.Printf("-")
+		log.Printf("-")
 		handleIncoming(msg, conn)
 	}
 }
@@ -96,7 +96,7 @@ func handleIncoming(buf []byte, conn net.Conn) {
 
 	// Check length
 	if l == 0 {
-		fmt.Printf("buffer not complete yet")
+		log.Printf("buffer not complete yet")
 		return // buffer not complete yet
 	}
 
@@ -109,7 +109,6 @@ func handleIncoming(buf []byte, conn net.Conn) {
 	// Decode packet.
 	_, err = pkt.Decode(buf)
 	if err != nil {
-		fmt.Printf("%v\n", err)
 		panic(err) // there was an error while decoding
 	}
 
@@ -117,30 +116,25 @@ func handleIncoming(buf []byte, conn net.Conn) {
 	case packet.PINGREQ:
 		pingReply(conn)
 	case packet.PINGRESP:
-		fmt.Printf("Ping response\n")
+		log.Printf("Ping response\n")
 	case packet.CONNECT:
 		c := pkt.(*packet.ConnectPacket)
-		fmt.Println(c.Username)
-		fmt.Println(c.Password)
+		log.Println(c.Username)
+		log.Println(c.Password)
 	case packet.CONNACK:
 		ack := pkt.(*packet.ConnackPacket)
-		fmt.Printf("ReturnCode:%v\n\n", ack.ReturnCode)
+		log.Printf("ReturnCode:%v\n\n", ack.ReturnCode)
 	case packet.SUBACK:
-		fmt.Printf("SUBACK:\n\n")
-		sub := pkt.(*packet.SubackPacket)
-		fmt.Printf("PacketID:%v\n\n", sub.PacketID)
-		fmt.Printf("ReturnCodes:%v\n\n", sub.ReturnCodes)
+		log.Printf("SUBACK:\n\n")
 	case packet.PUBLISH:
-		fmt.Printf("\nPUBLISH:\n")
+		log.Printf("\nPUBLISH:\n")
 		p := pkt.(*packet.PublishPacket)
-		fmt.Printf("%v, Topic: %v, Payload: %v \n ", time.Now(), p.Message.Topic, string(p.Message.Payload))
-		//fmt.Println("\tPayload:" + string(p.Message.Payload))
-		//brk.Bundle.Publish(&p.Message, conn)
+		log.Printf("%v, Topic: %v, Payload: %v \n ", time.Now(), p.Message.Topic, string(p.Message.Payload))
 	}
 }
 
 func disconnect(c net.Conn) (n int, err error) {
-	fmt.Println("NewDisconnectPacket")
+	log.Println("NewDisconnectPacket")
 	discon := packet.NewDisconnectPacket()
 
 	// Allocate buffer.
@@ -158,7 +152,7 @@ func disconnect(c net.Conn) (n int, err error) {
 
 //pingReply todo ...
 func pingReply(c net.Conn) (n int, err error) {
-	fmt.Println("PingReply")
+	log.Println("PingReply")
 	pingack := packet.NewPingrespPacket()
 
 	// Allocate buffer.

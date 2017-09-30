@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net"
 	"os"
 	"time"
@@ -28,6 +30,8 @@ type Event struct {
 }
 
 func main() {
+	log.SetOutput(ioutil.Discard)
+
 	if len(os.Args) == 2 {
 		tlsOk = os.Args[1]
 	}
@@ -43,11 +47,8 @@ func main() {
 
 	conns := broker.HandleConns(broker.Listener)
 
-	broker.HandleIncoming = handleIncoming
-
 	go startServer(broker)
 
-	//broker.Accept()
 	for {
 		go handleConn(<-conns, broker)
 	}
@@ -68,14 +69,14 @@ func handleConn(c net.Conn, broker *server.Broker) {
 func startServer(b *server.Broker) {
 	for {
 		time.Sleep(1000 * time.Millisecond)
-		fmt.Printf(".")
+		log.Printf(".")
 		for kcn, kv := range connPool {
 			if kv != nil {
 				_, err := pingClient(kv)
 				if err != nil {
-					fmt.Printf("Conn Closed: %v \n", kcn)
+					log.Printf("Conn Closed: %v \n", kcn)
 					for _, v := range b.Bundle.TopicList {
-						fmt.Printf("Removing element %v\n", kcn)
+						log.Printf("Removing element %v\n", kcn)
 						delete(v.ConnList, kcn)
 					}
 					connPool[kcn] = nil
@@ -83,18 +84,18 @@ func startServer(b *server.Broker) {
 			}
 		}
 		for key, v := range b.Bundle.TopicList {
-			fmt.Printf("key: %v \n", key)
+			log.Printf("key: %v \n", key)
 			for _, d := range v.ConnList {
 				addr := d.RemoteAddr()
-				fmt.Printf("\taddr: %v \n", addr)
+				log.Printf("\taddr: %v \n", addr)
 				h := v.LastSent
 				g := len(v.Messages)
 				for k, m := range v.Messages {
 					if int64(k) > h {
-						fmt.Printf("\t\tmsg: %v \n", string(m.Payload))
+						log.Printf("\t\tmsg: %v \n", string(m.Payload))
 						_, err := command.Publish(m, d)
 						if err != nil {
-							fmt.Printf("\t\t\t Invalid Address\n")
+							log.Printf("\t\t\t Invalid Address\n")
 						}
 					}
 				}
@@ -111,7 +112,7 @@ func handleIncoming(buf []byte, conn net.Conn, brk *server.Broker) {
 
 	// Check length
 	if l == 0 {
-		fmt.Printf("buffer not complete yet")
+		log.Printf("buffer not complete yet")
 		return // buffer not complete yet
 	}
 
@@ -131,12 +132,12 @@ func handleIncoming(buf []byte, conn net.Conn, brk *server.Broker) {
 	case packet.PINGREQ:
 		pingReply(conn)
 	case packet.PINGRESP:
-		fmt.Printf("Ping response\n")
+		log.Printf("Ping response\n")
 	case packet.CONNECT:
-		fmt.Printf("\nCONNECT:\n")
+		log.Printf("\nCONNECT:\n")
 		c := pkt.(*packet.ConnectPacket)
-		fmt.Println("Username:" + c.Username)
-		fmt.Println("Password:" + c.Password)
+		log.Println("Username:" + c.Username)
+		log.Println("Password:" + c.Password)
 		replyConnectionAck(conn)
 		addr := fmt.Sprintf("%v", conn.RemoteAddr())
 		if connPool == nil {
@@ -144,15 +145,15 @@ func handleIncoming(buf []byte, conn net.Conn, brk *server.Broker) {
 		}
 		connPool[addr] = conn
 	case packet.PUBLISH:
-		fmt.Printf("\nPUBLISH:\n")
+		log.Printf("\nPUBLISH:\n")
 		p := pkt.(*packet.PublishPacket)
-		fmt.Println("Topic:" + p.Message.Topic)
-		fmt.Println("Payload:" + string(p.Message.Payload))
+		log.Println("Topic:" + p.Message.Topic)
+		log.Println("Payload:" + string(p.Message.Payload))
 		brk.Bundle.Publish(&p.Message, conn)
 	case packet.SUBSCRIBE:
-		fmt.Printf("\nSUBSCRIBE:\n")
+		log.Printf("\nSUBSCRIBE:\n")
 		p := pkt.(*packet.SubscribePacket)
-		fmt.Printf("Subscriptions: %v \n", p.Subscriptions)
+		log.Printf("Subscriptions: %v \n", p.Subscriptions)
 		replySubscriptionAck(conn, p.PacketID)
 		for _, s := range p.Subscriptions {
 			brk.Bundle.Subscribe(&s, conn)
@@ -162,7 +163,7 @@ func handleIncoming(buf []byte, conn net.Conn, brk *server.Broker) {
 }
 
 func replySubscriptionAck(c net.Conn, uid uint16) {
-	fmt.Println("replySubscriptionAck")
+	log.Println("replySubscriptionAck")
 	ack := packet.NewSubackPacket()
 	ack.PacketID = uid
 	ack.ReturnCodes = []uint8{0}
@@ -179,13 +180,11 @@ func replySubscriptionAck(c net.Conn, uid uint16) {
 
 	c.Write(buf)
 	c.Write([]byte("\n"))
-	fmt.Printf("replySubscriptionAck...done: %v \n", buf)
-
 }
 
 //pingClient todo ...
 func pingClient(c net.Conn) (n int, err error) {
-	fmt.Printf("PingClient %v\n", c.RemoteAddr())
+	log.Printf("PingClient %v\n", c.RemoteAddr())
 	ping := packet.NewPingreqPacket()
 
 	// Allocate buffer.
@@ -203,7 +202,7 @@ func pingClient(c net.Conn) (n int, err error) {
 
 //pingReply todo ...
 func pingReply(c net.Conn) (n int, err error) {
-	fmt.Println("pingReply")
+	log.Println("pingReply")
 	pingack := packet.NewPingrespPacket()
 
 	// Allocate buffer.
@@ -220,7 +219,7 @@ func pingReply(c net.Conn) (n int, err error) {
 }
 
 func replyConnectionAck(c net.Conn) (n int, err error) {
-	fmt.Println("replyConnectionAck")
+	log.Println("replyConnectionAck")
 	ack := packet.NewConnackPacket()
 	ack.ReturnCode = packet.ConnectionAccepted
 	ack.SessionPresent = true
@@ -235,6 +234,6 @@ func replyConnectionAck(c net.Conn) (n int, err error) {
 
 	n, err = c.Write(buf)
 	c.Write([]byte("\n"))
-	fmt.Printf("replyConnectionAck...done: %v \n", buf)
+	log.Printf("replyConnectionAck...done: %v \n", buf)
 	return n, err
 }
