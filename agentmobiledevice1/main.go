@@ -11,8 +11,15 @@ import (
 	"github.com/MagnusTiberius/packet"
 )
 
+const (
+	ulimit = 10
+)
+
 var (
-	uid uint16 = 100
+	uid  uint16 = 100
+	ctr  int
+	once bool
+	tls  net.Conn
 )
 
 func main() {
@@ -23,7 +30,7 @@ func main() {
 		ClientPEM: "secure/certs/client.pem",
 		ClientKey: "secure/certs/client.key",
 	}
-	tls := client.NewTLS(&cfg)
+	tls = client.NewTLS(&cfg)
 
 	if tls == nil {
 		panic("null connection")
@@ -56,6 +63,7 @@ func main() {
 		OnPublish:     OnPublish,
 		OnSubscribe:   OnSubscribe,
 		OnPingRequest: OnPingRequest,
+		OnUnsubscribe: OnUnsubscribe,
 	}
 
 	//go client.HandleReceive(tls, fh)
@@ -72,6 +80,16 @@ func OnConnect(conn net.Conn, pkt packet.Packet) {
 func OnPublish(conn net.Conn, pkt packet.Packet) {
 	p := pkt.(*packet.PublishPacket)
 	fmt.Printf("Topic:%v; Payload:%v\n", p.Message.Topic, string(p.Message.Payload))
+	ctr = ctr + 1
+	if ctr > ulimit {
+		if !once {
+			u := command.NewUnsubscribePacket()
+			u.PacketID = 100
+			u.Topics = []string{"device/sensor/2"}
+			command.Unsubscribe(u, tls)
+			once = !once
+		}
+	}
 }
 
 //OnSubscribe todo ...
@@ -79,7 +97,12 @@ func OnSubscribe(conn net.Conn, pkt packet.Packet) {
 	//log.Printf("OnSubscribe\n")
 }
 
+//OnUnsubscribe todo ...
+func OnUnsubscribe(conn net.Conn, pkt packet.Packet) {
+	fmt.Printf("OnUnsubscribe\n")
+}
+
 //OnPingRequest todo ...
 func OnPingRequest(conn net.Conn, pkt packet.Packet) {
-	//log.Printf("OnPingRequest\n")
+	fmt.Printf("OnPingRequest\n")
 }

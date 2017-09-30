@@ -63,6 +63,10 @@ func HandleIncoming(buf []byte, conn net.Conn) {
 	case packet.CONNACK:
 		//ack := pkt.(*packet.ConnackPacket)
 	case packet.SUBACK:
+	case packet.UNSUBACK:
+		if funcHandler.OnUnsubscribe != nil {
+			funcHandler.OnUnsubscribe(conn, pkt)
+		}
 	case packet.PUBLISH:
 		//p := pkt.(*packet.PublishPacket)
 		if funcHandler.OnPublish != nil {

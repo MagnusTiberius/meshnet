@@ -46,6 +46,7 @@ func main() {
 		OnConnect:     OnConnect,
 		OnPublish:     OnPublish,
 		OnSubscribe:   OnSubscribe,
+		OnUnsubscribe: OnUnsubscribe,
 		OnDisconnect:  OnDisconnect,
 		OnPingRequest: OnPingRequest,
 	}
@@ -71,6 +72,11 @@ func OnPublish(conn net.Conn, pkt packet.Packet) {
 //OnSubscribe todo ...
 func OnSubscribe(conn net.Conn, pkt packet.Packet) {
 	log.Printf("OnSubscribe\n")
+}
+
+//OnUnsubscribe todo ...
+func OnUnsubscribe(conn net.Conn, pkt packet.Packet) {
+	log.Printf("OnUnsubscribe\n")
 }
 
 //OnDisconnect todo ...

@@ -17,6 +17,7 @@ type FuncHandler struct {
 	OnConnect     func(conn net.Conn, pkt packet.Packet)
 	OnPublish     func(conn net.Conn, pkt packet.Packet)
 	OnSubscribe   func(conn net.Conn, pkt packet.Packet)
+	OnUnsubscribe func(conn net.Conn, pkt packet.Packet)
 	OnDisconnect  func(conn net.Conn, pkt packet.Packet)
 	OnPingRequest func(conn net.Conn, pkt packet.Packet)
 }

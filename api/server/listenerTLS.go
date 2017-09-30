@@ -34,6 +34,7 @@ type FuncHandler struct {
 	OnConnect     func(conn net.Conn, pkt packet.Packet)
 	OnPublish     func(conn net.Conn, pkt packet.Packet)
 	OnSubscribe   func(conn net.Conn, pkt packet.Packet)
+	OnUnsubscribe func(conn net.Conn, pkt packet.Packet)
 	OnDisconnect  func(conn net.Conn, pkt packet.Packet)
 	OnPingRequest func(conn net.Conn, pkt packet.Packet)
 }
@@ -207,6 +208,17 @@ func handleIncoming(buf []byte, conn net.Conn, brk *Broker) {
 		if funcHandler.OnSubscribe != nil {
 			funcHandler.OnSubscribe(conn, pkt)
 		}
+	case packet.UNSUBSCRIBE:
+		log.Printf("\nUNSUBSCRIBE:\n")
+		p := pkt.(*packet.UnsubscribePacket)
+		log.Printf("Topics: %v \n", p.Topics)
+		replyUnsubscriptionAck(conn, p.PacketID)
+		for _, s := range p.Topics {
+			brk.Bundle.Unsubscribe(s, conn)
+		}
+		if funcHandler.OnUnsubscribe != nil {
+			funcHandler.OnUnsubscribe(conn, pkt)
+		}
 	case packet.DISCONNECT:
 		conn.Close()
 		if funcHandler.OnDisconnect != nil {
@@ -223,6 +235,23 @@ func replySubscriptionAck(c net.Conn, uid uint16) {
 	ack.ReturnCodes = []uint8{0}
 	//ack.ReturnCode = []byte{0, 1}
 	//ack.SessionPresent = true
+
+	// Allocate buffer.
+	buf := make([]byte, ack.Len())
+
+	// Encode the packet.
+	if _, err := ack.Encode(buf); err != nil {
+		panic(err) // error while encoding
+	}
+
+	c.Write(buf)
+	c.Write([]byte("\n"))
+}
+
+func replyUnsubscriptionAck(c net.Conn, uid uint16) {
+	log.Println("replySubscriptionAck")
+	ack := packet.NewUnsubackPacket()
+	ack.PacketID = uid
 
 	// Allocate buffer.
 	buf := make([]byte, ack.Len())

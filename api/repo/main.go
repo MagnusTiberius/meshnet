@@ -50,6 +50,17 @@ func (t *Bundle) Publish(msg *packet.Message, conn net.Conn) {
 	ti.CurrentMsg = msg
 }
 
+//Unsubscribe todo ...
+func (t *Bundle) Unsubscribe(topic string, conn net.Conn) {
+	addr := fmt.Sprintf("%v", conn.RemoteAddr())
+	log.Printf("Repo.Unsubscribe: %v \n", addr)
+
+	ti, ok := t.TopicList[topic]
+	if ok {
+		delete(ti.ConnList, addr)
+	}
+}
+
 //Subscribe todo ...
 func (t *Bundle) Subscribe(sub *packet.Subscription, conn net.Conn) {
 	addr := fmt.Sprintf("%v", conn.RemoteAddr())
