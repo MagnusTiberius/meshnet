@@ -33,7 +33,7 @@ Example | Demo
 ```
    Broker: 
        - See sample broker program
-       - usage: go run ./serrver/main.go
+       - usage: go run ./server/main.go
 ```
 
 ```
