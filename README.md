@@ -44,7 +44,9 @@ Meshnet is an implementation of MQTT running on TCP. It supports TLS using SSL c
    Install:
        - go get github.com/MagnusTiberius/meshnet
        - go get github.com/MagnusTiberius/packet
-       - cd $HOME/src/github.com/MagnusTiberius/meshnet
+       - cd $HOME/src/github.com/MagnusTiberius/meshnet/secure
+       - /bin/sh certs.sh testemail@email.com
+       - cd ..
 ```
 
 ```
