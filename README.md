@@ -12,6 +12,11 @@ Meshnet is an implementation of MQTT running on TCP. It supports TLS using SSL c
    http://mqtt.org/documentation
 ```
 
+##Members
+
+  * Ben Gonzales - (503)889-6414 - https://github.com/MagnusTiberius
+  * Andrew Amargo - (502)229-6490 - https://github.com/bashdrew
+
 ## Status
 ```
    9/25/2017 - Implemented connect and connect-ack.
