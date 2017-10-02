@@ -28,6 +28,11 @@ Meshnet is an implementation of MQTT running on TCP. It supports TLS using SSL c
 
 * go get github.com/MagnusTiberius/packet
 
+## Private, Public Keys
+
+* usage: secure$ /bin/sh certs.sh testemail@email.com
+
+
 ## Example | Demo
 
 ```
