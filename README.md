@@ -68,3 +68,6 @@ Meshnet is an implementation of MQTT running on TCP. It supports TLS using SSL c
        - usage: go run ./agentmobiledevice1/main.go
 ```
 
+## Related Projects
+* https://github.com/MagnusTiberius/fogrt
+
